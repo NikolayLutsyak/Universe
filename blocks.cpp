@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <fstream>
 
 #define  FIELD_SIZE1 10
 #define  FIELD_SIZE2 10
@@ -8,7 +9,18 @@
 #define GRAVITY_CONST =1
 #define TIME_CONST =1
 
-weight[ELEMENTS_AMOUNT]={1,1,1,1,1,1,1,1,1,1};
+#define mH 1
+#define mHe 4
+#define mLi 7
+#define mBe 9
+#define mB 11
+#define mC 12
+#define mN 14
+#define mO 16
+#define mF 19
+#define mNe 20
+
+weight[ELEMENTS_AMOUNT]={mH,mHe,mLi,mBe,mB,mC,mN,mO,mF,mNe};
 
 struct comp // состав
 {
@@ -47,19 +59,32 @@ public:
 class gas
 {
 public:
-comp composition[ELEMENTS_AMOUNT];
+comp composition;
 floatvector speed[ELEMENTS_AMOUNT];
 };
 
 class cell
 {
-intvector coord; 
+private:
+intvector coord_; 
 public:
-gas gase;
-vector<star> stars;
-int amount_of_stars;
+float mass_;
+gas gase_;
+std::vector<star> stars;
+int amount_of_stars_;
 void init(intvector coord);
 void step( float mass[FIELD_SIZE1][FIELD_SIZE2] );
+};
+
+cell::init(intvector coord, gas gase)
+{
+    coord_ = coord;
+    amount_of_stars_ = 0;
+    gase_ = gase;
+    mass_ = 0;
+    int i;
+    for (i=0; i<ELEMENTS_AMOUNT; i++)
+        mass_+=(gase.composition.element[i]*weight[i]);
 };
 
 class field
@@ -67,8 +92,35 @@ class field
 	private:
 	cell cells[FIELD_SIZE1][FIELD_SIZE2];
 	public:
-	float mass[][];
-	void init();
+	void init(char * filename);
 	void step();
 	void print();
 };
+
+field::init(char* filename)
+{
+    ifstream inFile;
+    inFile.open(filename);
+    intvector coord;
+    gas gase;
+    
+    int i,j,k;
+    for (i=0; i<FIELD_SIZE1, i++)
+    {
+        for (j=0; j<FIELD_SIZE2; j++)
+        {
+            coord.x = i;
+            coord.y = j;
+            for(k=0; k<3*ELEMENTS_AMOUNT; k++)
+            {   
+                if(k<ELEMENTS_AMOUNT)
+                    inFile >> gase.composition.element[k]; //первая строка - массы
+                if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
+                    inFile >> gase.speed[k].x;// вторая - координата скорости по x
+                if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
+                    inFile >> gase.speed[k].y; // третья - скорость по y 
+            }
+            cells[i][j].init(coord,gase);
+        }
+    }
+}
