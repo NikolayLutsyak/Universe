@@ -98,6 +98,23 @@ class field
 	void print();
 };
 
+void input(int i, int j, gas * gase)
+{
+	int k;
+	coord.x = i;
+    coord.y = j;
+    
+    for(k=0; k<3*ELEMENTS_AMOUNT; k++)
+    {   
+    	if(k<ELEMENTS_AMOUNT)
+        	inFile >> gase->composition.element[k]; //первая строка - массы
+        if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
+            inFile >> gase->speed[k].x;// вторая - координата скорости по x
+        if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
+        	inFile >> gase->speed[k].y; // третья - скорость по y 
+    }
+}
+
 field::init(char* filename)
 {
     ifstream inFile;
@@ -110,47 +127,44 @@ field::init(char* filename)
     {
         for (j=0; j<FIELD_SIZE2; j++)
         {
-            coord.x = i;
-            coord.y = j;
-            for(k=0; k<3*ELEMENTS_AMOUNT; k++)
-            {   
-                if(k<ELEMENTS_AMOUNT)
-                    inFile >> gase.composition.element[k]; //первая строка - массы
-                if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
-                    inFile >> gase.speed[k].x;// вторая - координата скорости по x
-                if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
-                    inFile >> gase.speed[k].y; // третья - скорость по y 
-            }
+            input(i,j,&gase);
             cells[i][j].init(coord,gase);
         }
     }
 };
+
+void output(gas * gase)
+{
+	int k;
+	for(k=0; k<3*ELEMENTS_AMOUNT; k++)
+    {   
+        if(k<ELEMENTS_AMOUNT)
+            outFile << gase->composition.element[k]<<" "; //первая строка - массы
+        if (k==ELEMENTS_AMOUNT)
+           	outFile<<endl;
+        if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
+            outFile << gase->speed[k].x<<" ";// вторая - координата скорости по x
+        if(k==2*ELEMENTS_AMOUNT)
+        	outFile<<endl;
+        if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
+            outFile << gase->speed[k].y<<""; // третья - скорость по y 
+        outFile<<endl<<endl;
+    }
+}
 
 field::export_to(char * filename)
 {
 	int i,j,k;
 	ofstream outFile;
 	outFile.open(filename);
+	gas * gase;
 	
 	for (i=0; i<FIELD_SIZE1, i++)
     {
         for (j=0; j<FIELD_SIZE2; j++)
         {
-            for(k=0; k<3*ELEMENTS_AMOUNT; k++)
-            {   
-                if(k<ELEMENTS_AMOUNT)
-                    outFile << gase.composition.element[k]<<" "; //первая строка - массы
-                if (k==ELEMENTS_AMOUNT)
-                	outFile<<endl;
-                if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
-                    outFile << gase.speed[k].x<<" ";// вторая - координата скорости по x
-                if(k==2*ELEMENTS_AMOUNT)
-                	outFile<<endl;
-                if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
-                    outFile << gase.speed[k].y<<""; // третья - скорость по y 
-                outFile<<endl<<endl;
-            }
-            
+        	gase = & cells[i][j].gase_;
+            output(gase);
         }
     }
 };
