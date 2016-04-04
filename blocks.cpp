@@ -93,6 +93,7 @@ class field
 	cell cells[FIELD_SIZE1][FIELD_SIZE2];
 	public:
 	void init(char * filename);
+	void export_to(char * filename);
 	void step();
 	void print();
 };
@@ -123,4 +124,33 @@ field::init(char* filename)
             cells[i][j].init(coord,gase);
         }
     }
-}
+};
+
+field::export_to(char * filename)
+{
+	int i,j,k;
+	ofstream outFile;
+	outFile.open(filename);
+	
+	for (i=0; i<FIELD_SIZE1, i++)
+    {
+        for (j=0; j<FIELD_SIZE2; j++)
+        {
+            for(k=0; k<3*ELEMENTS_AMOUNT; k++)
+            {   
+                if(k<ELEMENTS_AMOUNT)
+                    outFile << gase.composition.element[k]<<" "; //первая строка - массы
+                if (k==ELEMENTS_AMOUNT)
+                	outFile<<endl;
+                if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
+                    outFile << gase.speed[k].x<<" ";// вторая - координата скорости по x
+                if(k==2*ELEMENTS_AMOUNT)
+                	outFile<<endl;
+                if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
+                    outFile << gase.speed[k].y<<""; // третья - скорость по y 
+                outFile<<endl<<endl;
+            }
+            
+        }
+    }
+};
