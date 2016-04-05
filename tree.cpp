@@ -1,3 +1,12 @@
+struct node
+{
+    int key;
+    Data data;
+    node * parent;
+    vector<node *> child;
+    char leaf;
+};
+
 node * Tree::find_node(int key, node * root)
 {
     if (!root)
