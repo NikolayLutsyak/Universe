@@ -100,14 +100,6 @@ class field
     void print();
 };
 
-void input(int i, int j, gas * gase,intvector * coord)
-{
-    int k;
-
-
-
-}
-
 void field::init(char* filename)
 {
     ifstream inFile;
