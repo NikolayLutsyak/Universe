@@ -5,8 +5,8 @@
 
 using namespace std;
 
-#define  FIELD_SIZE1 10
-#define  FIELD_SIZE2 10
+#define  FIELD_SIZE1 2
+#define  FIELD_SIZE2 4
 #define ELEMENTS_AMOUNT 10
 #define GRAVITY 1
 #define TIME 1
@@ -98,16 +98,43 @@ void cell::init(intvector coord, gas gase)
 
 class field
 {
-    private:
-    cell cells[FIELD_SIZE1][FIELD_SIZE2];
     public:
-    void init(char * filename);
-    void export_to(char * filename);
+    cell cells[FIELD_SIZE1][FIELD_SIZE2];
+    field();
+    void init(const char * filename);
+    void export_to(const char *filename);
     void step();
     void print();
 };
 
-void field::init(char* filename)
+void field::print()
+{
+    cout<<"got";
+}
+
+field::field()
+{
+    intvector coord;
+    gas gase;
+
+    int k;
+    for(k=0;k<ELEMENTS_AMOUNT;k++)
+    {
+        gase.speed[k].x=0;
+        gase.speed[k].y=0;
+        gase.composition.element[k] = 0;
+    }
+    int i,j;
+    for(i=0;i<FIELD_SIZE1;i++)
+        for(j=0;j<FIELD_SIZE2;j++)
+        {
+            coord.x = i;
+            coord.y = j;
+            cells[i][j].init(coord, gase);
+        }
+};
+
+void field::init(const char *filename)
 {
     ifstream inFile;
     inFile.open(filename);
@@ -125,15 +152,17 @@ void field::init(char* filename)
 
             for(k=0; k<3*ELEMENTS_AMOUNT; k++)
             {
-                if(k<ELEMENTS_AMOUNT)
-                {
+                if(k==0)
                     inFile >> temp;//для комментов и номеров клеток
+
+                if(k<ELEMENTS_AMOUNT)         
                     inFile >> gase.composition.element[k]; //первая строка - массы
-                }
+
                 if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
-                    inFile >> gase.speed[k].x;// вторая - координата скорости по x
+                    inFile >> gase.speed[k%ELEMENTS_AMOUNT].x;// вторая - координата скорости по x
+
                 if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
-                    inFile >> gase.speed[k].y; // третья - скорость по y
+                    inFile >> gase.speed[k%ELEMENTS_AMOUNT].y; // третья - скорость по y
             }
             cells[i][j].init(coord,gase);
         }
@@ -141,7 +170,7 @@ void field::init(char* filename)
 };
 
 
-void field::export_to(char * filename)
+void field::export_to(const char * filename)
 {
     int i,j,k;
     ofstream outFile;
@@ -160,18 +189,30 @@ void field::export_to(char * filename)
                 if (k==ELEMENTS_AMOUNT)
                     outFile<<endl;
                 if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
-                    outFile << gase.speed[k].x<<" ";// вторая - координата скорости по x
+                    outFile << gase.speed[k%ELEMENTS_AMOUNT].x<<" ";// вторая - координата скорости по x
                 if(k==2*ELEMENTS_AMOUNT)
                     outFile<<endl;
                 if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
-                    outFile << gase.speed[k].y<<""; // третья - скорость по y
-                outFile<<endl<<endl;
+                    outFile << gase.speed[k%ELEMENTS_AMOUNT].y<<" "; // третья - скорость по y
             }
+            outFile<<endl<<endl;
         }
     }
 };
 
 int main(){
-    cout<<"Hello world!"<<endl;
+
+    field  f = field();
+
+    string in = "input.txt";
+    string out = "output.txt";
+
+    f.init(in.c_str());
+    f.export_to(out.c_str());
     return 0;
 }
+
+//Пофиксить считывание, если файл кончился.
+//Совпадение ввода ввывода
+//Синхронизацию.
+//Экземпляры 10 на 10 две штуки разных.
