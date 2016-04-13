@@ -5,11 +5,12 @@
 
 using namespace std;
 
-#define  FIELD_SIZE1 2
-#define  FIELD_SIZE2 2
+#define  FIELD_SIZE1 10
+#define  FIELD_SIZE2 10
 #define ELEMENTS_AMOUNT 10
-#define GRAVITY_CONST =1
-#define TIME_CONST =1
+#define GRAVITY 1
+#define TIME 1
+#define DIFFUSION 0.01
 
 #define mH 1
 #define mHe 4
@@ -42,11 +43,17 @@ class floatvector
     float x;
     float y;
     float abs();
+    float abs3();
 };
 
 float floatvector::abs()
 {
     return sqrt(x*x+y*y);
+};
+
+float floatvector::abs3()
+{
+    return abs()*abs()*abs();
 };
 
 struct star
@@ -75,7 +82,7 @@ public:
     std::vector<star> stars;
     int amount_of_stars_;
     void init(intvector coord, gas gase);
-    void step( float mass[FIELD_SIZE1][FIELD_SIZE2] );
+    void step( floatvector Force[FIELD_SIZE1][FIELD_SIZE2] );
 };
 
 void cell::init(intvector coord, gas gase)
@@ -91,38 +98,16 @@ void cell::init(intvector coord, gas gase)
 
 class field
 {
-    public:
+    private:
     cell cells[FIELD_SIZE1][FIELD_SIZE2];
-    field();
-    void init(const char * filename);
-    void export_to(const char *filename);
+    public:
+    void init(char * filename);
+    void export_to(char * filename);
     void step();
     void print();
 };
 
-field::field()
-{
-    intvector coord;
-    gas gase;
-
-    int k;
-    for(k=0;k<ELEMENTS_AMOUNT;k++)
-    {
-        gase.speed[k].x=0;
-        gase.speed[k].y=0;
-        gase.composition.element[k] = 0;
-    }
-    int i,j;
-    for(i=0;i<FIELD_SIZE1;i++)
-        for(j=0;j<FIELD_SIZE2;j++)
-        {
-            coord.x = i;
-            coord.y = j;
-            cells[i][j].init(coord, gase);
-        }
-};
-
-void field::init(const char *filename)
+void field::init(char* filename)
 {
     ifstream inFile;
     inFile.open(filename);
@@ -140,17 +125,15 @@ void field::init(const char *filename)
 
             for(k=0; k<3*ELEMENTS_AMOUNT; k++)
             {
-                if(k==0)
+                if(k<ELEMENTS_AMOUNT)
+                {
                     inFile >> temp;//для комментов и номеров клеток
-
-                if(k<ELEMENTS_AMOUNT)         
                     inFile >> gase.composition.element[k]; //первая строка - массы
-
+                }
                 if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
-                    inFile >> gase.speed[k%ELEMENTS_AMOUNT].x;// вторая - координата скорости по x
-
+                    inFile >> gase.speed[k].x;// вторая - координата скорости по x
                 if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
-                    inFile >> gase.speed[k%ELEMENTS_AMOUNT].y; // третья - скорость по y
+                    inFile >> gase.speed[k].y; // третья - скорость по y
             }
             cells[i][j].init(coord,gase);
         }
@@ -158,7 +141,7 @@ void field::init(const char *filename)
 };
 
 
-void field::export_to(const char * filename)
+void field::export_to(char * filename)
 {
     int i,j,k;
     ofstream outFile;
@@ -177,25 +160,18 @@ void field::export_to(const char * filename)
                 if (k==ELEMENTS_AMOUNT)
                     outFile<<endl;
                 if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
-                    outFile << gase.speed[k%ELEMENTS_AMOUNT].x<<" ";// вторая - координата скорости по x
+                    outFile << gase.speed[k].x<<" ";// вторая - координата скорости по x
                 if(k==2*ELEMENTS_AMOUNT)
                     outFile<<endl;
                 if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
-                    outFile << gase.speed[k%ELEMENTS_AMOUNT].y<<" "; // третья - скорость по y
+                    outFile << gase.speed[k].y<<""; // третья - скорость по y
+                outFile<<endl<<endl;
             }
-            outFile<<endl<<endl;
         }
     }
 };
 
 int main(){
-
-    field  f = field();
-
-    string in = "input.txt";
-    string out = "output.txt";
-
-    f.init(in.c_str());
-    f.export_to(out.c_str());
+    cout<<"Hello world!"<<endl;
     return 0;
 }
