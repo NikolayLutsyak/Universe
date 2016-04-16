@@ -2,15 +2,19 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
-#define  FIELD_SIZE1 2
+#define  FIELD_SIZE1 4
 #define  FIELD_SIZE2 4
 #define ELEMENTS_AMOUNT 10
 #define GRAVITY 1
 #define TIME 1
 #define DIFFUSION 0.01
+#define SLEEP_STEP 100
+#define SLEEP_ALL 1000
 
 #define mH 1
 #define mHe 4
@@ -106,10 +110,14 @@ class field
     void step();
     void print();
 };
+void field::step()
+{
+    cout<<"Шажок"<<endl;
+}
 
 void field::print()
 {
-    cout<<"got";
+    //Здесь будет код Эдика...
 }
 
 field::field()
@@ -141,6 +149,7 @@ void field::init(const char *filename)
     intvector coord;
     gas gase;
     string temp;
+    int flag = 1;
 
     int i,j,k;
     for (i=0; i<FIELD_SIZE1; i++)
@@ -153,9 +162,10 @@ void field::init(const char *filename)
             for(k=0; k<3*ELEMENTS_AMOUNT; k++)
             {
                 if(k==0)
-                    inFile >> temp;//для комментов и номеров клеток
+                    if(!(inFile >> temp))
+                        flag = 0;//для комментов и номеров клеток
 
-                if(k<ELEMENTS_AMOUNT)         
+                if(k<ELEMENTS_AMOUNT)
                     inFile >> gase.composition.element[k]; //первая строка - массы
 
                 if((k>=ELEMENTS_AMOUNT)&&(k<2*ELEMENTS_AMOUNT))
@@ -164,7 +174,9 @@ void field::init(const char *filename)
                 if((k>=2*ELEMENTS_AMOUNT)&&(k<3*ELEMENTS_AMOUNT))
                     inFile >> gase.speed[k%ELEMENTS_AMOUNT].y; // третья - скорость по y
             }
-            cells[i][j].init(coord,gase);
+            if (flag)
+                cells[i][j].init(coord,gase);
+            else break;
         }
     }
 };
@@ -184,6 +196,8 @@ void field::export_to(const char * filename)
             gase = cells[i][j].gase_;
             for(k=0; k<3*ELEMENTS_AMOUNT; k++)
             {
+                if (k==0)
+                    outFile<<i+1<<"."<<j+1<<" "<<endl;
                 if(k<ELEMENTS_AMOUNT)
                     outFile << gase.composition.element[k]<<" "; //первая строка - массы
                 if (k==ELEMENTS_AMOUNT)
@@ -200,19 +214,52 @@ void field::export_to(const char * filename)
     }
 };
 
+void paint(field f, int flag)
+{
+    /* какой-то код*/
+    cout<<"Рисунок"<<endl;
+
+    return;
+}
+
 int main(){
 
     field  f = field();
+    string a;
 
-    string in = "input.txt";
+  /*string in = "input.txt";
     string out = "output.txt";
 
     f.init(in.c_str());
     f.export_to(out.c_str());
+    */
+    int i;
+
+    for(i=0;i<5;i++)
+    {
+        using namespace std::chrono;
+
+        thread thr2 = thread(paint,f, 0);
+        thr2.join();
+
+        auto start = high_resolution_clock::now();
+
+        f.step();
+
+        auto end = high_resolution_clock::now();
+        duration<double, std::milli> elapsed = end-start;
+        int duration = elapsed.count();
+
+        while(duration<SLEEP_ALL)
+        {
+            this_thread::sleep_for(chrono::milliseconds(SLEEP_STEP));
+            duration+=SLEEP_STEP;
+        }
+
+    }
+
     return 0;
 }
 
-//Пофиксить считывание, если файл кончился.
-//Совпадение ввода ввывода
-//Синхронизацию.
+
 //Экземпляры 10 на 10 две штуки разных.
