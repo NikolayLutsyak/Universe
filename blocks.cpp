@@ -7,8 +7,8 @@
 
 using namespace std;
 
-#define  FIELD_SIZE1 4
-#define  FIELD_SIZE2 4
+#define  FIELD_SIZE1 10
+#define  FIELD_SIZE2 10
 #define ELEMENTS_AMOUNT 10
 #define GRAVITY 1
 #define TIME 1
@@ -124,9 +124,10 @@ void cell::init(intvector coord, gas gase)
     g=0;
     b=0;
     br=0;
-    m=0;
+    m=1;
     for (i=0; i<ELEMENTS_AMOUNT; i++)
     {
+        if(gase.composition.element[i]==0) {cout<<"exit"<<endl;exit(-1);}
         mass_+=(gase.composition.element[i]*weight[i]);
         r += gase_.composition.element[i]*colors[i].r;
         g += gase_.composition.element[i]*colors[i].g;
@@ -267,17 +268,18 @@ void paint(field f, int flag)
 int main(){
 
     field  f = field();
-    string a;
+//    string a;
 
-    string in = "input.txt";
+    string in = "output1.txt";
     string out = "output.txt";
+
 
     f.init(in.c_str());
     f.export_to(out.c_str());
 
-    /*int i;
+    int i,j;
 
-    for(i=0;i<5;i++)
+    /*for(i=0;i<5;i++)
     {
         using namespace std::chrono;
 
@@ -299,7 +301,13 @@ int main(){
         }
 
     }*/
-
+for (i=0;i<ELEMENTS_AMOUNT; i++)
+{
+    for(j=0;j<ELEMENTS_AMOUNT;j++)
+    {
+        cout<<f.cells[i][j].c.r<<" "<<f.cells[i][j].c.g<<" "<<f.cells[i][j].c.b<<" "<<f.cells[i][j].c.br<<endl;
+    }
+}
     return 0;
 }
 
