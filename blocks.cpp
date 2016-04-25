@@ -15,6 +15,8 @@ using namespace std;
 #define DIFFUSION 0.01
 #define SLEEP_STEP 100
 #define SLEEP_ALL 1000
+#define SIGMA 2
+#define SIZE 10
 
 #define mH 1
 #define mHe 4
@@ -28,6 +30,25 @@ using namespace std;
 #define mNe 20
 
 int weight[ELEMENTS_AMOUNT]={mH,mHe,mLi,mBe,mB,mC,mN,mO,mF,mNe};
+
+struct color
+{
+    int r;
+    int g;
+    int b;
+    int br;
+};
+
+color colors[ELEMENTS_AMOUNT]={{0,0,200, 255},
+                               {200,200,0,150},
+                               {150,150,150,255},
+                               {220,220,220,255},
+                               {90,10,10,255},
+                               {10,10,10, 255},
+                               {92,250,242,255},
+                               {118,255,122,255},
+                               {255,233,16,255},
+                               {51,204,255,255}};
 
 struct comp // состав
 {
@@ -76,6 +97,8 @@ comp composition;
 floatvector speed[ELEMENTS_AMOUNT];
 };
 
+gas zero_gase;
+
 class cell
 {
 private:
@@ -83,6 +106,7 @@ private:
 public:
     float mass_;
     gas gase_;
+    color c;
     std::vector<star> stars;
     int amount_of_stars_;
     void init(intvector coord, gas gase);
@@ -95,10 +119,26 @@ void cell::init(intvector coord, gas gase)
     amount_of_stars_ = 0;
     gase_ = gase;
     mass_ = 0;
-    int i;
+    int i,r,g,b,br, m;
+    r=0;
+    g=0;
+    b=0;
+    br=0;
+    m=0;
     for (i=0; i<ELEMENTS_AMOUNT; i++)
+    {
         mass_+=(gase.composition.element[i]*weight[i]);
-};
+        r += gase_.composition.element[i]*colors[i].r;
+        g += gase_.composition.element[i]*colors[i].g;
+        b += gase_.composition.element[i]*colors[i].b;
+        br += gase_.composition.element[i]*colors[i].br;
+        m+=gase.composition.element[i];
+    }
+    c.r=r/m;
+    c.g=g/m;
+    c.b=b/m;
+    c.br=br/m;
+}
 
 class field
 {
@@ -154,16 +194,18 @@ void field::init(const char *filename)
     int i,j,k;
     for (i=0; i<FIELD_SIZE1; i++)
     {
+        if(!flag)
+            break;
         for (j=0; j<FIELD_SIZE2; j++)
         {
-            coord.x = i;
-            coord.y = j;
-
             for(k=0; k<3*ELEMENTS_AMOUNT; k++)
             {
                 if(k==0)
-                    if(!(inFile >> temp))
+                {
+                    if(!(inFile >> coord.x))
                         flag = 0;//для комментов и номеров клеток
+                    inFile >> coord.y;
+                }
 
                 if(k<ELEMENTS_AMOUNT)
                     inFile >> gase.composition.element[k]; //первая строка - массы
@@ -197,7 +239,7 @@ void field::export_to(const char * filename)
             for(k=0; k<3*ELEMENTS_AMOUNT; k++)
             {
                 if (k==0)
-                    outFile<<i+1<<"."<<j+1<<" "<<endl;
+                    outFile<<i+1<<" "<<j+1<<endl;
                 if(k<ELEMENTS_AMOUNT)
                     outFile << gase.composition.element[k]<<" "; //первая строка - массы
                 if (k==ELEMENTS_AMOUNT)
@@ -227,13 +269,13 @@ int main(){
     field  f = field();
     string a;
 
-  /*string in = "input.txt";
+    string in = "input.txt";
     string out = "output.txt";
 
     f.init(in.c_str());
     f.export_to(out.c_str());
-    */
-    int i;
+
+    /*int i;
 
     for(i=0;i<5;i++)
     {
@@ -256,7 +298,7 @@ int main(){
             duration+=SLEEP_STEP;
         }
 
-    }
+    }*/
 
     return 0;
 }
